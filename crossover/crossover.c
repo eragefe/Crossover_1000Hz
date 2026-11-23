@@ -12,6 +12,8 @@ typedef struct {
 typedef struct {
     Biquad lp[2][2], hp[2][2];
     double woofer_gain, tweeter_gain;
+    double tweeter_target_gain, tweeter_gain_step;
+    unsigned long tweeter_ramp_remaining;
 } Crossover;
 
 static void init_biquad(Biquad *b, double fs, int highpass)
@@ -53,6 +55,27 @@ void crossover_init(Crossover *c, double sample_rate)
 
     c->woofer_gain = 1.0;
     c->tweeter_gain = 1.0;
+    c->tweeter_target_gain = 1.0;
+    c->tweeter_gain_step = 0.0;
+    c->tweeter_ramp_remaining = 0;
+}
+
+void crossover_set_tweeter_gain_db(Crossover *c, double db,
+                                    double sample_rate)
+{
+    double target = pow(10.0, db / 20.0);
+    unsigned long ramp_frames = (unsigned long)(sample_rate * 0.050);
+
+    c->tweeter_target_gain = target;
+    c->tweeter_ramp_remaining = ramp_frames;
+
+    if (ramp_frames == 0) {
+        c->tweeter_gain = target;
+        c->tweeter_gain_step = 0.0;
+    } else {
+        c->tweeter_gain_step =
+            (target - c->tweeter_gain) / (double)ramp_frames;
+    }
 }
 
 static int32_t to_s32(double x)
@@ -67,6 +90,14 @@ void crossover_process(Crossover *c, const int32_t *in,
                        int32_t *out, size_t frames)
 {
     for (size_t i = 0; i < frames; i++) {
+        if (c->tweeter_ramp_remaining > 0) {
+            c->tweeter_gain += c->tweeter_gain_step;
+            c->tweeter_ramp_remaining--;
+
+            if (c->tweeter_ramp_remaining == 0)
+                c->tweeter_gain = c->tweeter_target_gain;
+        }
+
         for (int ch = 0; ch < 2; ch++) {
             double x = (double)in[2 * i + ch];
 

@@ -11,8 +11,39 @@
 
 #define PERIOD 1024
 #define BUFFER (PERIOD * 4)
+#define TWEETER_GAIN_CONFIG "/root/crossover/tweeter_gain.conf"
 
 static volatile sig_atomic_t running = 1;
+
+static int read_tweeter_gain_db(double *db)
+{
+    FILE *f = fopen(TWEETER_GAIN_CONFIG, "r");
+    if (!f) return 0;
+
+    char line[128];
+    if (!fgets(line, sizeof(line), f)) {
+        fclose(f);
+        return 0;
+    }
+    fclose(f);
+
+    errno = 0;
+    char *end;
+    double value = strtod(line, &end);
+
+    if (end == line || errno || !isfinite(value))
+        return 0;
+
+    while (*end == ' ' || *end == '\t' ||
+           *end == '\r' || *end == '\n')
+        end++;
+
+    if (*end != '\0' || value < -10.0 || value > 0.0)
+        return 0;
+
+    *db = value;
+    return 1;
+}
 
 static void stop_handler(int sig)
 {
@@ -222,6 +253,21 @@ int main(void)
         Crossover dsp;
         crossover_init(&dsp, rate);
 
+        double applied_tweeter_gain_db = 999.0;
+        double requested_tweeter_gain_db;
+
+        if (read_tweeter_gain_db(&requested_tweeter_gain_db)) {
+            crossover_set_tweeter_gain_db(
+                &dsp, requested_tweeter_gain_db, rate);
+            applied_tweeter_gain_db = requested_tweeter_gain_db;
+            fprintf(stderr, "Tweeter gain: %.1f dB\n",
+                    applied_tweeter_gain_db);
+        } else {
+            fprintf(stderr,
+                    "Tweeter gain config unavailable or invalid; using 0.0 dB\n");
+            applied_tweeter_gain_db = 0.0;
+        }
+
         unsigned long long capture_xruns = 0;
         unsigned long long playback_xruns = 0;
 
@@ -264,6 +310,15 @@ int main(void)
             }
 
             if (n == 0) continue;
+
+            if (read_tweeter_gain_db(&requested_tweeter_gain_db) &&
+                requested_tweeter_gain_db != applied_tweeter_gain_db) {
+                crossover_set_tweeter_gain_db(
+                    &dsp, requested_tweeter_gain_db, rate);
+                applied_tweeter_gain_db = requested_tweeter_gain_db;
+                fprintf(stderr, "Tweeter gain changed to %.1f dB\n",
+                        applied_tweeter_gain_db);
+            }
 
             convert_input(raw, input, (size_t)n * 2, format);
             crossover_process(&dsp, input, output, (size_t)n);
