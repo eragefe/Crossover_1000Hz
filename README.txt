@@ -58,3 +58,40 @@ After reboot, check:
 
 The original PCM5102A driver is included in the driver
 directory as a backup/reference.
+
+TWEETER GAIN CONTROL:
+  The tweeter output level can be adjusted independently
+  for both left and right channels while the crossover
+  is running.
+
+  Configuration file:
+    /root/crossover/tweeter_gain.conf
+
+  Allowed range:
+    -10.0 dB to 0.0 dB
+
+  Default:
+    0.0 dB (when the configuration is missing or invalid
+    at startup).
+
+  Changes are detected automatically. No service restart
+  is required.
+
+  Gain changes use a 50 ms smooth ramp to avoid clicks.
+
+  Examples:
+
+    Set tweeter gain to 0 dB:
+      echo "0.0" > /root/crossover/tweeter_gain.conf
+
+    Set tweeter gain to -10 dB:
+      echo "-10.0" > /root/crossover/tweeter_gain.conf
+
+    Check current configured gain:
+      cat /root/crossover/tweeter_gain.conf
+
+  The gain adjustment affects only:
+    channel 2: tweeter left
+    channel 3: tweeter right
+
+  Woofer channels 0 and 1 are unaffected.
