@@ -9,7 +9,7 @@
 
 #include "crossover.c"
 
-#define PERIOD 256
+#define PERIOD 1024
 #define BUFFER (PERIOD * 4)
 
 static volatile sig_atomic_t running = 1;
@@ -89,6 +89,25 @@ static int configure_pcm(snd_pcm_t *pcm, unsigned int channels,
              pcm, hw, &buffer)) < 0) return err;
 
     return snd_pcm_hw_params(pcm, hw);
+}
+
+static int configure_playback_sw(snd_pcm_t *pcm)
+{
+    snd_pcm_sw_params_t *sw;
+    snd_pcm_sw_params_alloca(&sw);
+
+    int err = snd_pcm_sw_params_current(pcm, sw);
+    if (err < 0) return err;
+
+    err = snd_pcm_sw_params_set_start_threshold(
+        pcm, sw, PERIOD * 3);
+    if (err < 0) return err;
+
+    err = snd_pcm_sw_params_set_avail_min(
+        pcm, sw, PERIOD);
+    if (err < 0) return err;
+
+    return snd_pcm_sw_params(pcm, sw);
 }
 
 static void close_devices(snd_pcm_t *in, snd_pcm_t *out)
@@ -191,8 +210,20 @@ int main(void)
             continue;
         }
 
+        err = configure_playback_sw(out);
+        if (err < 0) {
+            fprintf(stderr, "Cannot configure DAC software parameters: %s\n",
+                    snd_strerror(err));
+            close_devices(in, out);
+            usleep(200000);
+            continue;
+        }
+
         Crossover dsp;
         crossover_init(&dsp, rate);
+
+        unsigned long long capture_xruns = 0;
+        unsigned long long playback_xruns = 0;
 
         fprintf(stderr, "Crossover running: %u Hz, input %s, output S32_LE\n",
                 rate, snd_pcm_format_name(format));
@@ -213,11 +244,22 @@ int main(void)
             }
 
             if (n < 0) {
+                if (n == -EPIPE) {
+                    capture_xruns++;
+                    fprintf(stderr, "DIAGNOSTIC: Capture overrun #%llu\n",
+                            capture_xruns);
+                }
+
                 err = snd_pcm_recover(in, (int)n, 1);
                 if (err < 0) {
-                    fprintf(stderr, "Capture error: %s\n", snd_strerror(err));
+                    fprintf(stderr, "Capture recovery failed: %s\n",
+                            snd_strerror(err));
                     break;
                 }
+
+                if (n == -EPIPE)
+                    fprintf(stderr, "DIAGNOSTIC: Capture recovered\n");
+
                 continue;
             }
 
@@ -233,13 +275,23 @@ int main(void)
                     snd_pcm_writei(out, output + 4 * sent, n - sent);
 
                 if (written < 0) {
+                    if (written == -EPIPE) {
+                        playback_xruns++;
+                        fprintf(stderr, "DIAGNOSTIC: DAC underrun #%llu\n",
+                                playback_xruns);
+                    }
+
                     err = snd_pcm_recover(out, (int)written, 1);
                     if (err < 0) {
-                        fprintf(stderr, "Playback error: %s\n",
+                        fprintf(stderr, "Playback recovery failed: %s\n",
                                 snd_strerror(err));
                         running = 0;
                         break;
                     }
+
+                    if (written == -EPIPE)
+                        fprintf(stderr, "DIAGNOSTIC: DAC recovered\n");
+
                     continue;
                 }
 
@@ -248,6 +300,9 @@ int main(void)
         }
 
         close_devices(in, out);
+        fprintf(stderr,
+                "DIAGNOSTIC: Stream totals: capture overruns=%llu, DAC underruns=%llu\n",
+                capture_xruns, playback_xruns);
         fprintf(stderr, "Stream ended; waiting for next stream.\n");
     }
 
