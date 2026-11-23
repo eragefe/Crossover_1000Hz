@@ -1,0 +1,9 @@
+filename:       /lib/modules/6.18.44-current-rockchip64/updates/snd-soc-pcm5102a.ko
+license:        GPL v2
+author:         Florian Meier <florian.meier@koalo.de>
+description:    ASoC PCM5102A codec driver
+alias:          of:N*T*Cti,pcm5102aC*
+alias:          of:N*T*Cti,pcm5102a
+depends:        snd-soc-core
+name:           snd_soc_pcm5102a
+vermagic:       6.18.44-current-rockchip64 SMP preempt mod_unload aarch64

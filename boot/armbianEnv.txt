@@ -1,0 +1,12 @@
+verbosity=1
+bootlogo=false
+console=serial
+overlay_prefix=rk3308
+fdtfile=rockchip/rk3308-rock-pi-s.dtb
+extraargs=cma=16M
+fdt_addr_r=0x08000000
+ramdisk_addr_r=0x0a000000
+rootdev=UUID=042556cc-28a6-4c97-820c-a7da6b682d6d
+rootfstype=ext4
+user_overlays=simple_card
+usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u

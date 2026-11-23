@@ -1,0 +1,1 @@
+Linux rockpi-s 6.18.44-current-rockchip64 #1 SMP PREEMPT Sun Aug  9 18:25:30 UTC 2026 aarch64 GNU/Linux

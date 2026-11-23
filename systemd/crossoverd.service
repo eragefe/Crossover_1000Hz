@@ -1,0 +1,15 @@
+[Unit]
+Description=Automatic-rate ALSA Digital Crossover
+After=local-fs.target sound.target
+Wants=sound.target
+
+[Service]
+Type=simple
+ExecStartPre=/sbin/modprobe snd-aloop
+ExecStart=/root/crossover/crossoverd_auto
+WorkingDirectory=/root/crossover
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

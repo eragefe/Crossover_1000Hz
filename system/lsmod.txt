@@ -1,0 +1,38 @@
+Module                  Size  Used by
+snd_aloop              28672  0
+hci_uart              139264  0
+btqca                  24576  1 hci_uart
+btrtl                  28672  1 hci_uart
+btbcm                  20480  1 hci_uart
+btintel                53248  1 hci_uart
+snd_soc_rk3308         65536  0
+snd_soc_pcm5102a       12288  1
+snd_soc_rockchip_i2s_tdm    28672  2
+bluetooth             720896  6 btrtl,btqca,btintel,hci_uart,btbcm
+snd_soc_simple_card    20480  0
+snd_soc_simple_card_utils    24576  1 snd_soc_simple_card
+snd_soc_core          217088  5 snd_soc_rockchip_i2s_tdm,snd_soc_pcm5102a,snd_soc_rk3308,snd_soc_simple_card_utils,snd_soc_simple_card
+snd_compress           24576  1 snd_soc_core
+snd_pcm_dmaengine      12288  1 snd_soc_core
+snd_pcm               122880  5 snd_compress,snd_soc_simple_card_utils,snd_soc_core,snd_aloop,snd_pcm_dmaengine
+snd_timer              40960  2 snd_aloop,snd_pcm
+snd                    86016  5 snd_timer,snd_compress,snd_soc_core,snd_aloop,snd_pcm
+soundcore              12288  1 snd
+cfg80211              897024  0
+rfkill                 28672  3 bluetooth,cfg80211
+zram                   45056  2
+842_decompress         16384  1 zram
+842_compress           20480  1 zram
+lz4hc_compress         20480  1 zram
+lz4_compress           24576  1 zram
+binfmt_misc            20480  1
+nfnetlink              16384  2
+ip_tables              28672  0
+x_tables               36864  1 ip_tables
+autofs4                45056  2
+btrfs                1564672  0
+blake2b_generic        16384  0
+xor                    12288  1 btrfs
+xor_neon               16384  1 xor
+raid6_pq               94208  1 btrfs
+realtek                45056  1
