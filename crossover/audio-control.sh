@@ -15,21 +15,23 @@ change_frequency() {
     echo
     echo "===== CROSSOVER FREQUENCY ====="
     echo
-    local frequencies=(120 1000 1250 1500 1750 2000 2250 2500 2750 3000 3250 3500)
-
-    for i in "${!frequencies[@]}"; do
-        printf "  %2d. %d Hz\n" "$((i+1))" "${frequencies[$i]}"
-    done
-
+    echo "  Enter a frequency from 100 to 18000 Hz."
+    echo "  Valid increments: 100 Hz"
     echo
-    read -r -p "Select frequency (1-12): " choice
 
-    if ! [[ "$choice" =~ ^([1-9]|1[0-2])$ ]]; then
-        echo "Invalid selection."
+    read -r -p "Crossover frequency (Hz): " frequency
+
+    if ! [[ "$frequency" =~ ^[0-9]+$ ]]; then
+        echo "Invalid frequency."
         return
     fi
 
-    local frequency="${frequencies[$((choice-1))]}"
+    frequency=$((10#$frequency))
+
+    if (( frequency < 100 || frequency > 18000 || frequency % 100 != 0 )); then
+        echo "Frequency must be 100-18000 Hz in 100 Hz increments."
+        return
+    fi
 
     echo "$frequency" > "$FREQ_FILE"
 

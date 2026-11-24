@@ -66,19 +66,13 @@ CROSSOVER FREQUENCY CONTROL:
   Configuration file:
     /root/crossover/crossover_freq.conf
 
-  Available frequencies:
-    120 Hz
-    1000 Hz
-    1250 Hz
-    1500 Hz
-    1750 Hz
-    2000 Hz
-    2250 Hz
-    2500 Hz
-    2750 Hz
-    3000 Hz
-    3250 Hz
-    3500 Hz
+  Available frequency range:
+    100 Hz to 18000 Hz
+    Adjustable in 100 Hz increments.
+
+  Enter the desired frequency directly in the audio-control
+  menu. Values outside this range or not divisible by 100
+  are rejected.
 
   Default:
     1000 Hz

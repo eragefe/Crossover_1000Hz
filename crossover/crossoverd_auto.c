@@ -39,7 +39,7 @@ static double read_crossover_frequency(void)
            *end == '\r' || *end == '\n')
         end++;
 
-    if (*end != '\0' || value < 100.0 || value > 10000.0)
+    if (*end != '\0' || value < 100.0 || value > 18000.0)
         return 1000.0;
 
     return value;
