@@ -63,6 +63,16 @@ mkdir -p /root/crossover
 install -m 0644 "$BASE/crossover/crossover.c" /root/crossover/
 install -m 0644 "$BASE/crossover/crossoverd_auto.c" /root/crossover/
 install -m 0755 "$BASE/crossover/crossoverd_auto" /root/crossover/
+install -m 0755 "$BASE/crossover/audio-control.sh" /root/crossover/
+
+# Create default configuration files without overwriting existing settings.
+if [ ! -f /root/crossover/crossover_freq.conf ]; then
+    install -m 0644 "$BASE/crossover/crossover_freq.conf" /root/crossover/
+fi
+
+if [ ! -f /root/crossover/tweeter_gain.conf ]; then
+    install -m 0644 "$BASE/crossover/tweeter_gain.conf" /root/crossover/
+fi
 
 # Install the matching kernel module.
 install -m 0644 "$DRIVER" "$DEST"

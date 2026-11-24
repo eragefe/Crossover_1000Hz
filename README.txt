@@ -59,6 +59,42 @@ After reboot, check:
 The original PCM5102A driver is included in the driver
 directory as a backup/reference.
 
+CROSSOVER FREQUENCY CONTROL:
+  The crossover frequency can be selected from the
+  audio-control menu.
+
+  Configuration file:
+    /root/crossover/crossover_freq.conf
+
+  Available frequencies:
+    120 Hz
+    1000 Hz
+    1250 Hz
+    1500 Hz
+    1750 Hz
+    2000 Hz
+    2250 Hz
+    2500 Hz
+    2750 Hz
+    3000 Hz
+    3250 Hz
+    3500 Hz
+
+  Default:
+    1000 Hz
+
+  A frequency change requires the crossover service
+  to restart so the DSP filters can be initialized
+  with the selected frequency.
+
+  The menu performs this restart automatically.
+
+  To start the control menu:
+    bash /root/crossover/audio-control.sh
+
+  To check the configured frequency:
+    cat /root/crossover/crossover_freq.conf
+
 TWEETER GAIN CONTROL:
   The tweeter output level can be adjusted independently
   for both left and right channels while the crossover
@@ -95,3 +131,15 @@ TWEETER GAIN CONTROL:
     channel 3: tweeter right
 
   Woofer channels 0 and 1 are unaffected.
+
+AUDIO CONTROL MENU:
+  The menu provides the following functions:
+    1. Change crossover frequency
+    2. Adjust tweeter gain
+    3. Show current settings
+    4. Restart audio crossover
+    5. Exit
+
+  Tweeter gain changes take effect while playback
+  continues. Crossover frequency changes restart
+  the crossover service.

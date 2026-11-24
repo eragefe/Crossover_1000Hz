@@ -12,8 +12,39 @@
 #define PERIOD 1024
 #define BUFFER (PERIOD * 4)
 #define TWEETER_GAIN_CONFIG "/root/crossover/tweeter_gain.conf"
+#define CROSSOVER_FREQ_CONFIG "/root/crossover/crossover_freq.conf"
 
 static volatile sig_atomic_t running = 1;
+
+static double read_crossover_frequency(void)
+{
+    FILE *f = fopen(CROSSOVER_FREQ_CONFIG, "r");
+    if (!f) return 1000.0;
+
+    char line[128];
+    if (!fgets(line, sizeof(line), f)) {
+        fclose(f);
+        return 1000.0;
+    }
+    fclose(f);
+
+    errno = 0;
+    char *end;
+    double value = strtod(line, &end);
+
+    if (end == line || errno || !isfinite(value))
+        return 1000.0;
+
+    while (*end == ' ' || *end == '\t' ||
+           *end == '\r' || *end == '\n')
+        end++;
+
+    if (*end != '\0' || value < 100.0 || value > 10000.0)
+        return 1000.0;
+
+    return value;
+}
+
 
 static int read_tweeter_gain_db(double *db)
 {
@@ -250,8 +281,13 @@ int main(void)
             continue;
         }
 
+        double crossover_frequency = read_crossover_frequency();
+
         Crossover dsp;
-        crossover_init(&dsp, rate);
+        crossover_init(&dsp, rate, crossover_frequency);
+
+        fprintf(stderr, "Crossover frequency: %.1f Hz\n",
+                crossover_frequency);
 
         double applied_tweeter_gain_db = 999.0;
         double requested_tweeter_gain_db;

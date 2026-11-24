@@ -16,9 +16,10 @@ typedef struct {
     unsigned long tweeter_ramp_remaining;
 } Crossover;
 
-static void init_biquad(Biquad *b, double fs, int highpass)
+static void init_biquad(Biquad *b, double fs, double frequency,
+                        int highpass)
 {
-    double w = 2.0 * PI * 1000.0 / fs;
+    double w = 2.0 * PI * frequency / fs;
     double c = cos(w), s = sin(w);
     double alpha = s / (2.0 * 0.7071067811865476);
     double a0 = 1.0 + alpha;
@@ -46,11 +47,14 @@ static double process_biquad(Biquad *b, double x)
     return y;
 }
 
-void crossover_init(Crossover *c, double sample_rate)
+void crossover_init(Crossover *c, double sample_rate,
+                    double crossover_frequency)
 {
     for (int i = 0; i < 2; i++) {
-        for (int ch = 0; ch < 2; ch++) init_biquad(&c->lp[i][ch], sample_rate, 0);
-        for (int ch = 0; ch < 2; ch++) init_biquad(&c->hp[i][ch], sample_rate, 1);
+        for (int ch = 0; ch < 2; ch++)
+            init_biquad(&c->lp[i][ch], sample_rate, crossover_frequency, 0);
+        for (int ch = 0; ch < 2; ch++)
+            init_biquad(&c->hp[i][ch], sample_rate, crossover_frequency, 1);
     }
 
     c->woofer_gain = 1.0;
